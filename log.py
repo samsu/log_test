@@ -64,18 +64,23 @@ logging.addLevelName(TRACE, 'TRACE')
 def _get_log_file_path(conf, binary=None):
     logfile = conf.log_file
     logdir = conf.log_dir
+    log_org = None
+    logs_path = dir()
 
     if logfile and not logdir:
-        return logfile
+        log_org = logfile
 
     if logfile and logdir:
-        return os.path.join(logdir, logfile)
+        log_org = os.path.join(logdir, logfile)
 
     if logdir:
         binary = binary or handlers._get_binary_name()
-        return '%s.log' % (os.path.join(logdir, binary),)
+        log_org = '%s.log' % (os.path.join(logdir, binary),)
 
-    return None
+    logs_path['org'] = log_org
+    logs_path['json'] = log_org[:-4] + '_json' + log_org[-4:]
+
+    return logs_path
 
 
 def _iter_loggers():
@@ -342,56 +347,60 @@ def _setup_logging_from_conf(conf, project, version):
     for handler in list(log_root.handlers):
         log_root.removeHandler(handler)
 
-    logpath = _get_log_file_path(conf)
-    if logpath:
-        if conf.watch_log_file and platform.system() == 'Linux':
-            from oslo_log import watchers
-            file_handler = watchers.FastWatchedFileHandler
-        else:
-            file_handler = logging.handlers.WatchedFileHandler
+    logs_path = _get_log_file_path(conf)
+    for logpath in logs_path.itervalues():
+        if logpath:
+            if conf.watch_log_file and platform.system() == 'Linux':
+                from oslo_log import watchers
+                file_handler = watchers.FastWatchedFileHandler
+            else:
+                file_handler = logging.handlers.WatchedFileHandler
 
-        filelog = file_handler(logpath)
-        log_root.addHandler(filelog)
+            filelog = file_handler(logpath)
 
-    if conf.use_stderr:
-        streamlog = handlers.ColorHandler()
-        log_root.addHandler(streamlog)
+            log_root.addHandler(filelog)
 
-    if conf.use_journal:
-        journal = handlers.OSJournalHandler()
-        log_root.addHandler(journal)
+        if conf.use_stderr:
+            streamlog = handlers.ColorHandler()
+            log_root.addHandler(streamlog)
 
-    # if None of the above are True, then fall back to standard out
-    if not logpath and not conf.use_stderr and not conf.use_journal:
-        # pass sys.stdout as a positional argument
-        # python2.6 calls the argument strm, in 2.7 it's stream
-        streamlog = handlers.ColorHandler(sys.stdout)
-        log_root.addHandler(streamlog)
+        if conf.use_journal:
+            journal = handlers.OSJournalHandler()
+            log_root.addHandler(journal)
 
-    if conf.publish_errors:
-        handler = importutils.import_object(
-            "oslo_messaging.notify.log_handler.PublishErrorsHandler",
-            logging.ERROR)
-        log_root.addHandler(handler)
+        # if None of the above are True, then fall back to standard out
+        if not logpath and not conf.use_stderr and not conf.use_journal:
+            # pass sys.stdout as a positional argument
+            # python2.6 calls the argument strm, in 2.7 it's stream
+            streamlog = handlers.ColorHandler(sys.stdout)
+            log_root.addHandler(streamlog)
 
-    if conf.use_syslog:
-        global syslog
-        if syslog is None:
-            raise RuntimeError("syslog is not available on this platform")
-        facility = _find_facility(conf.syslog_log_facility)
-        syslog_handler = handlers.OSSysLogHandler(facility=facility)
-        log_root.addHandler(syslog_handler)
+        if conf.publish_errors:
+            handler = importutils.import_object(
+                "oslo_messaging.notify.log_handler.PublishErrorsHandler",
+                logging.ERROR)
+            log_root.addHandler(handler)
+
+        if conf.use_syslog:
+            global syslog
+            if syslog is None:
+                raise RuntimeError("syslog is not available on this platform")
+            facility = _find_facility(conf.syslog_log_facility)
+            syslog_handler = handlers.OSSysLogHandler(facility=facility)
+            log_root.addHandler(syslog_handler)
 
     datefmt = conf.log_date_format
     if not conf.use_json:
         for handler in log_root.handlers:
-            handler.setFormatter(formatters.ContextFormatter(project=project,
-                                                             version=version,
-                                                             datefmt=datefmt,
-                                                             config=conf))
+            handler.setFormatter(
+                formatters.ContextFormatter(project=project,
+                                            version=version,
+                                            datefmt=datefmt,
+                                            config=conf))
     else:
         for handler in log_root.handlers:
             handler.setFormatter(formatters.JSONFormatter(datefmt=datefmt))
+
     _refresh_root_level(conf.debug)
 
     for pair in conf.default_log_levels:
