@@ -348,58 +348,57 @@ def _setup_logging_from_conf(conf, project, version):
         log_root.removeHandler(handler)
 
     logs_path = _get_log_file_path(conf)
-    for logpath in logs_path.itervalues():
+    datefmt = conf.log_date_format
+
+    for fmt, logpath in logs_path.itervalues():
         if logpath:
             if conf.watch_log_file and platform.system() == 'Linux':
                 from oslo_log import watchers
                 file_handler = watchers.FastWatchedFileHandler
             else:
                 file_handler = logging.handlers.WatchedFileHandler
-
-            filelog = file_handler(logpath)
-
-            log_root.addHandler(filelog)
+            handler = file_handler(logpath)
+            #log_root.addHandler(filelog)
 
         if conf.use_stderr:
-            streamlog = handlers.ColorHandler()
-            log_root.addHandler(streamlog)
+            handler = handlers.ColorHandler()
+            #log_root.addHandler(streamlog)
 
         if conf.use_journal:
-            journal = handlers.OSJournalHandler()
-            log_root.addHandler(journal)
+            handler = handlers.OSJournalHandler()
+            #log_root.addHandler(journal)
 
         # if None of the above are True, then fall back to standard out
         if not logpath and not conf.use_stderr and not conf.use_journal:
             # pass sys.stdout as a positional argument
             # python2.6 calls the argument strm, in 2.7 it's stream
-            streamlog = handlers.ColorHandler(sys.stdout)
-            log_root.addHandler(streamlog)
+            handler = handlers.ColorHandler(sys.stdout)
+            #log_root.addHandler(streamlog)
 
         if conf.publish_errors:
             handler = importutils.import_object(
                 "oslo_messaging.notify.log_handler.PublishErrorsHandler",
                 logging.ERROR)
-            log_root.addHandler(handler)
+            #log_root.addHandler(handler)
 
         if conf.use_syslog:
             global syslog
             if syslog is None:
                 raise RuntimeError("syslog is not available on this platform")
             facility = _find_facility(conf.syslog_log_facility)
-            syslog_handler = handlers.OSSysLogHandler(facility=facility)
-            log_root.addHandler(syslog_handler)
+            handler = handlers.OSSysLogHandler(facility=facility)
+            #log_root.addHandler(syslog_handler)
 
-    datefmt = conf.log_date_format
-    if not conf.use_json:
-        for handler in log_root.handlers:
-            handler.setFormatter(
-                formatters.ContextFormatter(project=project,
-                                            version=version,
-                                            datefmt=datefmt,
-                                            config=conf))
-    else:
-        for handler in log_root.handlers:
-            handler.setFormatter(formatters.JSONFormatter(datefmt=datefmt))
+        if fmt == 'json' or conf.use_json:
+            formatter = formatters.JSONFormatter(datefmt=datefmt)
+        else:
+            formatter = formatters.ContextFormatter(project=project,
+                                                    version=version,
+                                                    datefmt=datefmt,
+                                                    config=conf)
+
+        handler.setFormatter(formatter)
+        log_root.addHandler(handler)
 
     _refresh_root_level(conf.debug)
 
@@ -425,6 +424,7 @@ def _setup_logging_from_conf(conf, project, version):
         rate_limit.install_filter(conf.rate_limit_burst,
                                   conf.rate_limit_interval,
                                   conf.rate_limit_except)
+
 
 _loggers = {}
 
