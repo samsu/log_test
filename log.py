@@ -350,7 +350,7 @@ def _setup_logging_from_conf(conf, project, version):
     logs_path = _get_log_file_path(conf)
     datefmt = conf.log_date_format
 
-    for fmt, logpath in logs_path.itervalues():
+    for fmt, logpath in logs_path.iteritems():
         if logpath:
             if conf.watch_log_file and platform.system() == 'Linux':
                 from oslo_log import watchers
