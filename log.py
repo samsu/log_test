@@ -65,7 +65,7 @@ def _get_log_file_path(conf, binary=None):
     logfile = conf.log_file
     logdir = conf.log_dir
     log_org = None
-    logs_path = dir()
+    logs_path = dict()
 
     if logfile and not logdir:
         log_org = logfile
