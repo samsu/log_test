@@ -358,28 +358,23 @@ def _setup_logging_from_conf(conf, project, version):
             else:
                 file_handler = logging.handlers.WatchedFileHandler
             handler = file_handler(logpath)
-            #log_root.addHandler(filelog)
 
         if conf.use_stderr:
             handler = handlers.ColorHandler()
-            #log_root.addHandler(streamlog)
 
         if conf.use_journal:
             handler = handlers.OSJournalHandler()
-            #log_root.addHandler(journal)
 
         # if None of the above are True, then fall back to standard out
         if not logpath and not conf.use_stderr and not conf.use_journal:
             # pass sys.stdout as a positional argument
             # python2.6 calls the argument strm, in 2.7 it's stream
             handler = handlers.ColorHandler(sys.stdout)
-            #log_root.addHandler(streamlog)
 
         if conf.publish_errors:
             handler = importutils.import_object(
                 "oslo_messaging.notify.log_handler.PublishErrorsHandler",
                 logging.ERROR)
-            #log_root.addHandler(handler)
 
         if conf.use_syslog:
             global syslog
@@ -387,7 +382,6 @@ def _setup_logging_from_conf(conf, project, version):
                 raise RuntimeError("syslog is not available on this platform")
             facility = _find_facility(conf.syslog_log_facility)
             handler = handlers.OSSysLogHandler(facility=facility)
-            #log_root.addHandler(syslog_handler)
 
         if fmt == 'json' or conf.use_json:
             formatter = formatters.JSONFormatter(datefmt=datefmt)
