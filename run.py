@@ -37,8 +37,6 @@ cfg.CONF(args=CFG_ARGS,
 
 CONF = config.CONF
 
-LOG = log.getLogger(__name__)
-
 
 def setup_logging():
     """Sets up the logging options for a log with supplied name."""
@@ -51,6 +49,43 @@ def setup_logging():
                                                version=version_info))
     LOG.debug("command line: %s", " ".join(sys.argv))
 
+
+_loggers = {}
+
+
+def get_loggers():
+    """Return a copy of the oslo loggers dictionary."""
+    return _loggers.copy()
+
+
+def getLogger(name=None, project='unknown', version='unknown'):
+    """Build a logger with the given name.
+
+    :param name: The name for the logger. This is usually the module
+                 name, ``__name__``.
+    :type name: string
+    :param project: The name of the project, to be injected into log
+                    messages. For example, ``'nova'``.
+    :type project: string
+    :param version: The version of the project, to be injected into log
+                    messages. For example, ``'2014.2'``.
+    :type version: string
+    """
+    # NOTE(dhellmann): To maintain backwards compatibility with the
+    # old oslo namespace package logger configurations, and to make it
+    # possible to control all oslo logging with one logger node, we
+    # replace "oslo_" with "oslo." so that modules under the new
+    # non-namespaced packages get loggers as though they are.
+    if name and name.startswith('oslo_'):
+        name = 'oslo.' + name[5:]
+    if name not in _loggers:
+        _loggers[name] = log.KeywordArgumentAdapter(logging.getLogger(name),
+                                                    {'project': project,
+                                                    'version': version})
+    return _loggers[name]
+
+
+LOG = getLogger(__name__)
 
 if __name__ == '__main__':
     setup_logging()
