@@ -37,19 +37,6 @@ cfg.CONF(args=CFG_ARGS,
 
 CONF = config.CONF
 
-
-def setup_logging():
-    """Sets up the logging options for a log with supplied name."""
-    # logging_context_format = ' '.join(consts.LOGGING_CONTEXT_FORMAT)
-    # log.set_defaults(logging_context_format_string=logging_context_format)
-    log.setup(CONF, consts.PRODUCT_NAME)
-    logging.captureWarnings(True)
-    LOG.info("Logging enabled!")
-    LOG.info("{prog} version {version}".format(prog=sys.argv[0],
-                                               version=version_info))
-    LOG.debug("command line: %s", " ".join(sys.argv))
-
-
 _loggers = {}
 
 
@@ -86,6 +73,19 @@ def getLogger(name=None, project='unknown', version='unknown'):
 
 
 LOG = getLogger(__name__)
+
+
+def setup_logging():
+    """Sets up the logging options for a log with supplied name."""
+    # logging_context_format = ' '.join(consts.LOGGING_CONTEXT_FORMAT)
+    # log.set_defaults(logging_context_format_string=logging_context_format)
+    log.setup(CONF, consts.PRODUCT_NAME)
+    logging.captureWarnings(True)
+    LOG.info("Logging enabled!")
+    LOG.info("{prog} version {version}".format(prog=sys.argv[0],
+                                               version=version_info))
+    LOG.debug("command line: %s", " ".join(sys.argv))
+
 
 if __name__ == '__main__':
     setup_logging()
