@@ -53,4 +53,4 @@ def setup_logging():
 
 
 if __name__ == '__main__':
-    setup_logging
+    setup_logging()
