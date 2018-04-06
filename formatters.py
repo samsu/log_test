@@ -24,7 +24,7 @@ from dateutil import tz
 import six
 from six import moves
 
-from oslo_context import context as context_utils
+from faas import context as context_utils
 from oslo_serialization import jsonutils
 from oslo_utils import encodeutils
 
@@ -417,8 +417,8 @@ class ContextFormatter(logging.Formatter):
         # NOTE(sdague): default the fancier formatting params
         # to an empty string so we don't throw an exception if
         # they get used
-        for key in ('instance', 'color', 'user_identity', 'resource',
-                    'user_name', 'project_name'):
+        for key in ('user_id', 'customer_id', 'is_admin', 'fac_user',
+                    'request_id', 'task_id'):
             if key not in record.__dict__:
                 record.__dict__[key] = ''
 

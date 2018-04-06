@@ -45,8 +45,9 @@ from six import moves
 
 from oslo_log._i18n import _
 from oslo_log import _options
-from oslo_log import formatters
 from oslo_log import handlers
+
+from log_test import formatters
 
 CRITICAL = logging.CRITICAL
 FATAL = logging.FATAL
