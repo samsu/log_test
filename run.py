@@ -20,6 +20,7 @@ from faas.conf import config
 from log_test import log
 from faas.common import constants as consts
 from faas.version import version_info
+from faas import context
 
 
 CFG_ARGS = [
@@ -53,4 +54,6 @@ def setup_logging():
 
 
 if __name__ == '__main__':
+    context.RequestContext(user_id='6ce90b4d', customer_id='d6134462',
+                           request_id='req-a6b9360e')
     setup_logging()
