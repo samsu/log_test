@@ -349,7 +349,7 @@ class ContextFormatter(logging.Formatter):
 
         """
 
-        self.customer_id = kwargs.pop('project', 'unknown')
+        self.project = kwargs.pop('project', 'unknown')
         self.version = kwargs.pop('version', 'unknown')
         self.conf = kwargs.pop('config', _CONF)
 
