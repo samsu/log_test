@@ -378,10 +378,11 @@ class ContextFormatter(logging.Formatter):
         # FIXME(dims): We need a better way to pick up the instance
         # or instance_uuid parameters from the kwargs from say
         # LOG.info or LOG.warn
-        instance_extra = ''
-        instance = getattr(record, 'instance', None)
-        instance_uuid = getattr(record, 'instance_uuid', None)
+        #instance_extra = ''
+        #instance = getattr(record, 'instance', None)
+        #instance_uuid = getattr(record, 'instance_uuid', None)
         context = _update_record_with_context(record)
+        """
         if instance:
             try:
                 instance_extra = (self.conf.instance_format
@@ -413,7 +414,7 @@ class ContextFormatter(logging.Formatter):
                                   % {'uuid': resource_uuid})
 
         record.instance = instance_extra
-
+        """
         # NOTE(sdague): default the fancier formatting params
         # to an empty string so we don't throw an exception if
         # they get used
@@ -425,12 +426,13 @@ class ContextFormatter(logging.Formatter):
         # Set the "user_identity" value of "logging_context_format_string"
         # by using "logging_user_identity_format" and
         # get_logging_values of oslo.context.
+        """
         if context:
             record.user_identity = (
                 self.conf.logging_user_identity_format %
                 _ReplaceFalseValue(_dictify_context(context))
             )
-
+        """
         if record.__dict__.get('request_id'):
             fmt = self.conf.logging_context_format_string
         else:
